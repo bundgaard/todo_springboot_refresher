@@ -17,7 +17,13 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().disable().csrf().disable().authorizeRequests().anyRequest().hasAnyRole("ADMIN", "USER").and().httpBasic();
+        http
+                .cors().disable()
+                .csrf().disable()
+                .authorizeRequests()
+                .anyRequest().hasAnyRole("ADMIN", "USER")
+                .and()
+                .httpBasic();
     }
 
     @Override
