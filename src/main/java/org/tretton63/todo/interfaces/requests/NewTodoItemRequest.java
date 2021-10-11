@@ -1,6 +1,6 @@
 package org.tretton63.todo.interfaces.requests;
 
-public class CacheValueDto {
+public class NewTodoItemRequest {
 
     private String value;
 
@@ -12,10 +12,9 @@ public class CacheValueDto {
         this.value = value;
     }
 
-    public CacheValueDto(String value) {
+    public NewTodoItemRequest(String value) {
         this.value = value;
     }
-    public CacheValueDto() {
-
+    public NewTodoItemRequest() {
     }
 }
