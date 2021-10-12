@@ -1,33 +1,23 @@
 package org.tretton63.todo;
 
 import io.restassured.http.ContentType;
-import org.hamcrest.Matcher;
-import org.hamcrest.Matchers;
+import io.restassured.response.ExtractableResponse;
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.tretton63.todo.interfaces.requests.NewTodoItemRequest;
 
 import java.net.URI;
 
-import static io.restassured.RestAssured.*;
+import static io.restassured.RestAssured.given;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class TodoApplicationTests {
-    @LocalServerPort
-    int serverPort;
 
+class TodoApplicationTests extends ComponentTest{
     @Test
     void contextLoads() {
     }
 
-
     @Test
     void getRequestHappyPath() {
-        given()
-                .port(serverPort)
-                .auth()
-                .basic("user1", "test")
+        given(requestForUser1())
                 .when()
                 .get("/todo/")
                 .thenReturn();
@@ -36,17 +26,31 @@ class TodoApplicationTests {
 
 
     @Test
-    void postHappyPath() {
+    void postHappyPathAndRetrieveValueBack() {
+        /*
+        * POST a request with body to server
+        * Validate response to be equal to 201
+        *
+        * Then test if the location we received is GETable
+        * and validate the status code to be 200
+        * */
         NewTodoItemRequest requestBody = new NewTodoItemRequest("Hello, World");
 
-        given()
-                .port(serverPort)
-                .contentType(ContentType.JSON)
+        ExtractableResponse response = given(requestForUser1())
                 .body(requestBody)
-                .auth()
-                .basic("user2", "test")
                 .when()
                 .post(URI.create("/todo/"))
-                .then().statusCode(201);
+                .then()
+                .statusCode(201)
+                .extract();
+
+        String location = response.header("Location");
+        System.out.printf("Trying to receive the value from the server %s\n", location);
+
+        given(requestForUser1())
+                .when()
+                .get(location)
+                .then()
+                .statusCode(200);
     }
 }
