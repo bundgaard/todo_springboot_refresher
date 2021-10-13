@@ -1,15 +1,25 @@
 package org.tretton63.todo.domain;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.tretton63.todo.tools.InstantDeserializer;
+
 import java.time.Instant;
+
 
 public class TodoItem {
     private String value;
     private boolean completed;
+    @JsonDeserialize(using  = InstantDeserializer.class)
     private Instant createdAt;
 
     public TodoItem(String value) {
         this.value = value;
         this.createdAt = Instant.now();
+    }
+
+    public TodoItem(String value, Instant createdAt) {
+        this.value = value;
+        this.createdAt = createdAt;
     }
 
     public String getValue() {

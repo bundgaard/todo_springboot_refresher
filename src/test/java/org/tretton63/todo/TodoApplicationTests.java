@@ -1,16 +1,19 @@
 package org.tretton63.todo;
 
-import io.restassured.http.ContentType;
 import io.restassured.response.ExtractableResponse;
+import io.restassured.response.Response;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.tretton63.todo.domain.TodoItem;
 import org.tretton63.todo.interfaces.requests.NewTodoItemRequest;
 
 import java.net.URI;
 
 import static io.restassured.RestAssured.given;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
-class TodoApplicationTests extends ComponentTest{
+class TodoApplicationTests extends ComponentTest {
     @Test
     void contextLoads() {
     }
@@ -20,7 +23,7 @@ class TodoApplicationTests extends ComponentTest{
         given(requestForUser1())
                 .when()
                 .get("/todo/")
-                .thenReturn();
+                .then().statusCode(HttpStatus.OK.value());
 
     }
 
@@ -28,15 +31,15 @@ class TodoApplicationTests extends ComponentTest{
     @Test
     void postHappyPathAndRetrieveValueBack() {
         /*
-        * POST a request with body to server
-        * Validate response to be equal to 201
-        *
-        * Then test if the location we received is GETable
-        * and validate the status code to be 200
-        * */
+         * POST a request with body to server
+         * Validate response to be equal to 201
+         *
+         * Then test if the location we received is GETable
+         * and validate the status code to be 200
+         * */
         NewTodoItemRequest requestBody = new NewTodoItemRequest("Hello, World");
 
-        ExtractableResponse response = given(requestForUser1())
+        ExtractableResponse<Response> response = given(requestForUser1())
                 .body(requestBody)
                 .when()
                 .post(URI.create("/todo/"))
@@ -47,10 +50,12 @@ class TodoApplicationTests extends ComponentTest{
         String location = response.header("Location");
         System.out.printf("Trying to receive the value from the server %s\n", location);
 
-        given(requestForUser1())
+        TodoItem item = given(requestForUser1())
                 .when()
-                .get(location)
+                .get(URI.create(location))
                 .then()
-                .statusCode(200);
+                .statusCode(200).extract().as(TodoItem.class);
+
+        assertThat(item.getValue()).isEqualTo("Hello, World");
     }
 }

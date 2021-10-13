@@ -1,5 +1,7 @@
 package org.tretton63.todo.interfaces;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,20 +20,21 @@ import java.util.*;
 @RequestMapping(value = "/todo")
 public class TodoController {
 
-    private HashMap<Principal, List<TodoItem>> values = new HashMap();
+    static final Logger log = LoggerFactory.getLogger(TodoController.class);
+    private static final HashMap<Principal, List<TodoItem>> values = new HashMap<>();
 
     @GetMapping(
             value = "/",
             produces = "application/json")
-    ResponseEntity<List<TodoItem>> Index(Principal principal) {
-        System.out.printf("%s\n", principal.getName());
+    ResponseEntity<List<TodoItem>> AllTodos(Principal principal) {
+        log.debug("All Todos: {}\n", principal.getName());
 
         return ResponseEntity.ok(values.get(principal));
     }
 
     @PostMapping(value = "/", consumes = "application/json")
     ResponseEntity<Void> NewTodoItem(@RequestBody NewTodoItemRequest value, Principal principal) {
-        System.out.printf("Principal: %s\nReceived Value: \"%s\"%n", principal.getName(), value.getValue());
+        log.debug("Principal: {} Received Value: \"{}\"", principal.getName(), value.getValue());
         if (value.getValue().isBlank()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .build();
@@ -42,7 +45,7 @@ public class TodoController {
             values.computeIfAbsent(principal, user -> new ArrayList<>()).add(new TodoItem(value.getValue()));
         }
         return ResponseEntity.created(
-                URI.create(URLEncoder.encode(String.format("/%s", value.getValue()), StandardCharsets.UTF_8))).build();
+                URI.create("/todo/"+URLEncoder.encode(String.format("%s", value.getValue()), StandardCharsets.UTF_8))).build();
     }
 
 
@@ -51,13 +54,16 @@ public class TodoController {
             @PathVariable String value,
             Principal principal
     ) {
-        System.out.printf("Principal: %s\nValue: %s\n", principal.getName(), value);
-        TodoItem item = values.get(principal)
-                .stream()
+        log.debug("Principal {}, Value {}", principal.getName(), value);
+
+        List<TodoItem> items = values.get(principal);
+        log.debug("Todo items {}", items.size());
+        TodoItem item = items.stream()
                 .filter(v -> v.getValue().equalsIgnoreCase(URLDecoder.decode(value, StandardCharsets.UTF_8)))
                 .findFirst()
                 .orElseThrow();
 
+        log.debug("returning {}", item);
         return ResponseEntity.ok(item);
     }
 }
